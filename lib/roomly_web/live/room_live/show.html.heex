@@ -6,6 +6,20 @@
       <.button>Edit room</.button>
     </.link>
   </:actions>
+  <:actions>
+    <%= if @current_user.id == @room.user_id do %>
+      <%= if @room.status == "closed" do%>
+        <.link phx-click="activate_room" phx-value-room_id={@room.id}>
+          <.button>Activate room</.button>
+        </.link>
+      <% end %>
+      <%= if @room.status == "active" do%>
+        <.link phx-click="close_room" phx-value-room_id={@room.id}>
+          <.button>Close room</.button>
+        </.link>
+      <% end %>
+    <% end %>
+  </:actions>
 </.header>
 
 <.list>
