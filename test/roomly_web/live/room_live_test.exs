@@ -3,19 +3,20 @@ defmodule RoomlyWeb.RoomLiveTest do
 
   import Phoenix.LiveViewTest
   import Roomly.OrchestratorFixtures
+  import Roomly.AccountsFixtures
 
   @create_attrs %{name: "some name", description: "some description"}
   @update_attrs %{name: "some updated name", description: "some updated description"}
   @invalid_attrs %{name: nil, description: nil}
 
-  defp create_room(_) do
-    room = room_fixture()
-    %{room: room}
+  setup %{conn: conn} do
+    current_user = user_fixture()
+    conn = log_in_user(conn, current_user)
+    room = room_fixture_for_user(current_user)
+    {:ok, conn: conn, current_user: current_user, room: room}
   end
 
   describe "Index" do
-    setup [:create_room]
-
     test "lists all rooms", %{conn: conn, room: room} do
       {:ok, _index_live, html} = live(conn, ~p"/rooms")
 
@@ -78,7 +79,7 @@ defmodule RoomlyWeb.RoomLiveTest do
   end
 
   describe "Show" do
-    setup [:create_room]
+    # setup [:create_room]
 
     test "displays room", %{conn: conn, room: room} do
       {:ok, _show_live, html} = live(conn, ~p"/rooms/#{room}")
