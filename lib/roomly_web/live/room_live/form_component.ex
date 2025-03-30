@@ -21,6 +21,23 @@ defmodule RoomlyWeb.RoomLive.FormComponent do
       >
         <.input field={@form[:name]} type="text" label="Name" />
         <.input field={@form[:description]} type="text" label="Description" />
+        <.input
+          field={@form[:type]}
+          type="select"
+          label="Type"
+          options={[{"Pomodoro", "pomodoro"}, {"Music", "music"}]}
+          phx-change="update_type"
+        />
+
+        <%= if @selected_type == "pomodoro" do %>
+          <.inputs_for :let={fp} field={@form[:config]}>
+            <.input field={fp[:work_duration]} type="text" label="Work Duration (min)" />
+            <.input field={fp[:break_duration]} type="text" label="break Duration (min)" />
+            <.input field={fp[:rounds]} type="text" label="Rounds" />
+          </.inputs_for>
+          <%!-- <.input field={@form[:config][:break_duration]} type="text" placeholder="Break Duration (min)"/>
+          <.input field={@form[:config][:rounds]} type="text" placeholder="No Of Rounds"/> --%>
+        <% end %>
         <:actions>
           <.button phx-disable-with="Saving...">Save Room</.button>
         </:actions>
@@ -47,6 +64,10 @@ defmodule RoomlyWeb.RoomLive.FormComponent do
 
   def handle_event("save", %{"room" => room_params}, socket) do
     save_room(socket, socket.assigns.action, room_params)
+  end
+
+  def handle_event("update_type", %{"room" => %{"type" => type}}, socket) do
+    {:noreply, assign(socket, selected_type: type)}
   end
 
   defp save_room(socket, :edit, room_params) do

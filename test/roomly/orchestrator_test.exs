@@ -7,12 +7,19 @@ defmodule Roomly.OrchestratorTest do
     alias Roomly.Orchestrator.Room
 
     import Roomly.OrchestratorFixtures
+    import Roomly.AccountsFixtures
 
-    @invalid_attrs %{name: nil, description: nil}
+    @invalid_attrs %{"name" => nil, "description" => nil}
 
     test "list_rooms/0 returns all rooms" do
       room = room_fixture()
       assert Orchestrator.list_rooms() == [room]
+    end
+
+    test "list_rooms_for_user/1 returns all rooms" do
+      room = room_fixture()
+      user = get_user_for_room(room)
+      assert Orchestrator.list_rooms_for_user(user) == [room]
     end
 
     test "get_room!/1 returns the room with given id" do
@@ -20,16 +27,29 @@ defmodule Roomly.OrchestratorTest do
       assert Orchestrator.get_room!(room.id) == room
     end
 
-    test "create_room/1 with valid data creates a room" do
-      valid_attrs = %{name: "some name", description: "some description"}
+    test "create_room/1 with valid data for podomoro creates a room" do
+      valid_attrs = %{
+        "name" => "some name",
+        "description" => "some description",
+        "type" => "pomodoro",
+        "config" => %{
+          "work_duration" => 25,
+          "break_duration" => 5,
+          "rounds" => 4
+        }
+      }
 
-      assert {:ok, %Room{} = room} = Orchestrator.create_room(valid_attrs)
+      user = user_fixture()
+
+      assert {:ok, %Room{} = room} = Orchestrator.create_room(valid_attrs, user)
       assert room.name == "some name"
       assert room.description == "some description"
     end
 
     test "create_room/1 with invalid data returns error changeset" do
-      assert {:error, %Ecto.Changeset{}} = Orchestrator.create_room(@invalid_attrs)
+      user = user_fixture()
+
+      assert {:error, %Ecto.Changeset{}} = Orchestrator.create_room(@invalid_attrs, user)
     end
 
     test "update_room/2 with valid data updates the room" do

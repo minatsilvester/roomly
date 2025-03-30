@@ -67,9 +67,7 @@ defmodule Roomly.Orchestrator do
   """
   def create_room(attrs, user) do
     %Room{}
-    |> Room.changeset(
-      add_user_id_to_attrs(attrs, user)
-    )
+    |> Room.changeset(add_user_id_to_attrs(attrs, user))
     |> Repo.insert()
   end
 
