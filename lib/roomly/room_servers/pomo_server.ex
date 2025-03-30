@@ -18,9 +18,22 @@ defmodule Roomly.RoomServers.PomoServer do
         config: config,
         rounds: 0,
         users: [],
-        status: :not_started
+        status: :idle
       }
     }
+  end
+
+  def join(room_id, user_id) do
+    GenServer.call(via_tuple(room_id), {:join_room, user_id})
+  end
+
+  def get_state(room_id) do
+    GenServer.call(via_tuple(room_id), :get_state)
+  end
+
+  # Start Timer
+  def start_timer(room_id) do
+    GenServer.cast(via_tuple(room_id), :start_timer)
   end
 
   @impl true
@@ -30,8 +43,31 @@ defmodule Roomly.RoomServers.PomoServer do
     {:reply, :ok, %{state | users: users}}
   end
 
-  def join(room_id, user_id) do
-    GenServer.call(via_tuple(room_id), {:join_room, user_id})
+  def handle_call(:get_state, _from, state) do
+    {:reply, state, state}
+  end
+
+  @impl true
+  def handle_cast(:start_timer, %{status: :idle, config: config} = state) do
+    # Logger.info("Starting Pomodoro Timer for #{state.id}")
+    schedule_timer(config.work_time)
+    {:noreply, %{state | status: :work}}
+  end
+
+  @impl true
+
+  def handle_info(:switch_timer, %{status: :work, config: config} = state) do
+    schedule_timer(config.break_time)
+    {:noreply, %{state | status: :break}}
+  end
+
+  def handle_info(:switch_timer, %{status: :break, config: config} = state) do
+    schedule_timer(config.work_time)
+    {:noreply, %{state | status: :work}}
+  end
+
+  defp schedule_timer(minutes) do
+    Process.send_after(self(), :switch_timer, minutes * 60 * 1000)
   end
 
   defp via_tuple(room_id) do
