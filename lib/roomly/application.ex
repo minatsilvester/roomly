@@ -17,7 +17,10 @@ defmodule Roomly.Application do
       # Start a worker by calling: Roomly.Worker.start_link(arg)
       # {Roomly.Worker, arg},
       # Start to serve requests, typically the last entry
-      RoomlyWeb.Endpoint
+      RoomlyWeb.Endpoint,
+      {Registry, keys: :unique, name: Roomly.RoomRegistry},
+      {Roomly.Supervisors.RoomsManager, []},
+      {Roomly.Attendance.RoomPresence, []}
     ]
 
     # See https://hexdocs.pm/elixir/Supervisor.html
