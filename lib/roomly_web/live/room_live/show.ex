@@ -4,17 +4,8 @@ defmodule RoomlyWeb.RoomLive.Show do
   alias Roomly.Orchestrator
 
   @impl true
-  def mount(%{"id" => room_id}, _session, socket) do
-    # {:ok, socket}
-    # Orchestrator.get_room!(room_id)
-    room_running =
-      case Registry.lookup(Roomly.RoomRegistry, room_id) do
-        [{_pid, _}] -> true
-        [] -> false
-      end
-
-    {:ok,
-      assign(socket, room_running: room_running)}
+  def mount(_params, _session, socket) do
+    {:ok, socket}
   end
 
   @impl true
@@ -28,7 +19,7 @@ defmodule RoomlyWeb.RoomLive.Show do
     ) do
         {:ok, _pid} ->
           # {:ok, updated_room} = Orchestrator.update_room(socket.assigns.room, %{"status" => "active"})
-          {:noreply, put_flash(socket, :info, "Room Started!") |> assign(room_running: true)}
+          {:noreply, put_flash(socket, :info, "Room Started!") |> assign(room_activated: true)}
 
         {:error, {:already_started, _pid}} ->
           {:noreply, put_flash(socket, :error, "Room is already running")}
@@ -45,19 +36,69 @@ defmodule RoomlyWeb.RoomLive.Show do
         {:noreply,
          socket
          |> put_flash(:info, "Room stopped!")
-         |> assign(:room_running, false)}
+         |> assign(room_activated: false)}
 
       _ ->
         {:noreply, put_flash(socket, :error, "Room is not running")}
     end
   end
 
+  def handle_event("join_room", _params, socket) do
+    room = socket.assigns.room
+    case join_room(room.id, socket.assigns.current_user.id, room.type) do
+      :ok ->
+        users = Roomly.Attendance.RoomPresence.get_users(room.id)
+        {:noreply, assign(socket, users: users, joined: true)}
+
+      {:error, _reason} ->
+        {:noreply, socket |> put_flash(:error, "Failed to join room")}
+    end
+  end
+
+  def handle_event("leave_room", _params, socket) do
+    room = socket.assigns.room
+    case leave_room(room.id, socket.assigns.current_user.id, room.type) do
+      :ok ->
+        users = Roomly.Attendance.RoomPresence.get_users(room.id)
+        {:noreply, assign(socket, users: users, joined: false) |> put_flash(:info, "Left Room")}
+
+      {:error, _reason} ->
+        {:noreply, socket |> put_flash(:error, "Failed to leave room")}
+    end
+  end
+
   @impl true
   def handle_params(%{"id" => id}, _, socket) do
+    room = Orchestrator.get_room!(id)
+    room_activated =
+      case Registry.lookup(Roomly.RoomRegistry, room.id) do
+        [{_pid, _}] -> true
+        [] -> false
+      end
+
+    if room_activated do
+      Phoenix.PubSub.subscribe(Roomly.PubSub, "room:#{id}")
+    end
+
+    presences = Roomly.Attendance.RoomPresence.list("room:#{id}")
+    joined = Map.has_key?(presences, socket.assigns.current_user.id)
+    users = Roomly.Attendance.RoomPresence.get_users(id)
+
     {:noreply,
      socket
      |> assign(:page_title, page_title(socket.assigns.live_action))
-     |> assign(:room, Orchestrator.get_room!(id))}
+     |> assign(:room, room)
+     |> assign(room_activated: room_activated)
+     |> assign(users: users)
+     |> assign(joined: joined)}
+  end
+
+  defp join_room(room_id, user_id, "pomodoro") do
+    Roomly.RoomServers.PomoServer.join(room_id, user_id)
+  end
+
+  defp leave_room(room_id, user_id, "pomodoro") do
+    Roomly.RoomServers.PomoServer.leave(room_id, user_id)
   end
 
   defp page_title(:show), do: "Show Room"
