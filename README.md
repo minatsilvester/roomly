@@ -1,18 +1,100 @@
-# Roomly
+# Roomly 🎮⏳
 
-To start your Phoenix server:
+Roomly is a **real-time interactive room system** built with **Phoenix LiveView**. Users can create and join rooms for various activities such as **playing games, synchronized music listening, chatting, and Pomodoro focus sessions**. The project is designed to be highly interactive, leveraging **LiveView, Presence tracking, and GenServer-based room management**.
 
-  * Run `mix setup` to install and setup dependencies
-  * Start Phoenix endpoint with `mix phx.server` or inside IEx with `iex -S mix phx.server`
+---
 
-Now you can visit [`localhost:4000`](http://localhost:4000) from your browser.
+## 🚀 Features
 
-Ready to run in production? Please [check our deployment guides](https://hexdocs.pm/phoenix/deployment.html).
+- **Dynamic Room Creation**: Users can create different types of rooms with customizable configurations.
+- **Live Presence Tracking**: See who is in the room in real-time using Phoenix Presence.
+- **Pomodoro Timer**: Start, track, and sync Pomodoro sessions for focus rooms.
+- **Stateful Rooms**: Each room runs as a **GenServer** process under a **Dynamic Supervisor**.
+- **Persistent User Sessions**: Player IDs are stored in `localStorage` for persistence across refreshes.
 
-## Learn more
+---
 
-  * Official website: https://www.phoenixframework.org/
-  * Guides: https://hexdocs.pm/phoenix/overview.html
-  * Docs: https://hexdocs.pm/phoenix
-  * Forum: https://elixirforum.com/c/phoenix-forum
-  * Source: https://github.com/phoenixframework/phoenix
+## 📌 Room Types
+
+1. **Pomodoro Room** ⏳: Time-based focus sessions with work/break cycles.
+2. **Game Room** 🎮: Multiplayer rooms for interactive games.
+3. **Music Room** 🎵: Synchronized listening experience for groups.
+4. **Chat Room** 💬: Simple real-time chat functionality.
+
+---
+
+## 🛠️ Tech Stack
+
+- **Backend**: Elixir, Phoenix LiveView, GenServer, Presence
+- **Frontend**: Tailwind CSS, Phoenix LiveView hooks
+- **Database**: PostgreSQL
+
+---
+
+## 🔥 Getting Started
+
+### 1️⃣ Installation
+```sh
+# Clone the repository
+git clone https://github.com/yourusername/roomly.git
+cd roomly
+
+# Install dependencies
+mix deps.get
+npm install --prefix assets
+
+# Setup database
+mix ecto.setup
+
+# Start the server
+mix phx.server
+```
+
+### 2️⃣ Running the Application
+Once the server is running, open your browser and go to:
+```
+http://localhost:4000
+```
+
+---
+
+## ⚡ How It Works
+
+### Joining a Room 🚪
+- Click on **Join Room** to enter.
+- Presence tracks who is inside in real-time.
+
+### Pomodoro Timer ⏳
+- Click **Start Timer** to begin the session.
+- The timer cycles between work and break periods.
+- Live updates ensure all users see the same countdown.
+
+### Leaving a Room 🚶
+- Click **Leave Room** to exit.
+- Your presence is updated in real-time.
+
+---
+
+## 🏗️ Architecture
+
+### Dynamic Supervisor + GenServer
+- Each **room is a GenServer**, dynamically spawned under a **Supervisor**.
+- **Registry** is used to track running rooms.
+- **Presence** updates the active user list in real-time.
+
+### LiveView Integration
+- Room pages update **without refresh**.
+- **Live events** trigger state changes, like starting the timer or joining a room.
+
+---
+
+## 📌 Roadmap
+- [ ] 🎲 Add more game integrations
+- [ ] 🎶 Improve the music synchronization experience
+- [ ] 🛑 Auto-stop rooms after inactivity
+- [ ] 🏆 Leaderboard and stats tracking
+
+---
+
+## 🌎 Connect
+💬 Have questions or suggestions? Feel free to reach out or open an issue!
