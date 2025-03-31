@@ -11,6 +11,10 @@ defmodule Roomly.Attendance.RoomPresence do
     track(self(), "room:#{room_id}", user_id, %{joined_at: System.system_time(:second)})
   end
 
+  def untrack_user(room_id, user_id) do
+    untrack(self(), "room:#{room_id}", user_id)
+  end
+
   def get_users(room_id) do
     list("room:#{room_id}")
     |> Map.keys()

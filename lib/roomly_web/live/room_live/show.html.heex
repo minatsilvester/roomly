@@ -8,12 +8,12 @@
   </:actions>
   <:actions>
     <%= if @current_user.id == @room.user_id do %>
-      <%= if !@room_running do%>
+      <%= if !@room_activated do%>
         <.link phx-click="activate_room" phx-value-room_id={@room.id}>
           <.button>Activate room</.button>
         </.link>
       <% end %>
-      <%= if @room_running do%>
+      <%= if @room_activated do%>
         <.link phx-click="close_room" phx-value-room_id={@room.id}>
           <.button>Close room</.button>
         </.link>
@@ -29,6 +29,38 @@
 
 <.back navigate={~p"/rooms"}>Back to rooms</.back>
 
+<%= if @room_activated do %>
+  <%= if @room.type == "pomodoro" do %>
+    <div class="flex h-full w-full">
+      <!-- Left Side: Join Room -->
+      <div class="w-1/2 flex items-center justify-center bg-gray-100 p-4">
+        <%!-- <button class="bg-blue-500 text-white px-6 py-3 rounded-lg shadow-md hover:bg-blue-600">
+          Join Room
+        </button> --%>
+        <%= if !@joined do %>
+          <.link phx-click="join_room">
+            <.button>Join room</.button>
+        </.link>
+        <% end %>
+        <%= if @joined do %>
+          <.link phx-click="leave_room">
+            <.button>Leave room</.button>
+        </.link>
+        <% end %>
+      </div>
+
+      <!-- Right Side: User List -->
+      <div class="w-1/2 bg-white p-4 border-l">
+        <h2 class="text-xl font-semibold mb-3">Users in Room</h2>
+        <ul class="space-y-2">
+          <%= for user <- @users do %>
+            <li class="p-2 bg-gray-200 rounded-md"><%= user %></li>
+          <% end %>
+        </ul>
+      </div>
+    </div>
+  <% end %>
+<% end %>
 <.modal :if={@live_action == :edit} id="room-modal" show on_cancel={JS.patch(~p"/rooms/#{@room}")}>
   <.live_component
     module={RoomlyWeb.RoomLive.FormComponent}
