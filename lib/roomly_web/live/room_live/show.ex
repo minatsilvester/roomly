@@ -19,7 +19,14 @@ defmodule RoomlyWeb.RoomLive.Show do
     ) do
         {:ok, _pid} ->
           # {:ok, updated_room} = Orchestrator.update_room(socket.assigns.room, %{"status" => "active"})
-          {:noreply, put_flash(socket, :info, "Room Started!") |> assign(room_activated: true)}
+          Phoenix.PubSub.subscribe(Roomly.PubSub, "room:#{socket.assigns.room.id}")
+          presences = Roomly.Attendance.RoomPresence.list("room:#{socket.assigns.room.id}")
+          joined = Map.has_key?(presences, "#{socket.assigns.current_user.id}")
+          users = Roomly.Attendance.RoomPresence.get_users(socket.assigns.room.id)
+          {:noreply, put_flash(socket, :info, "Room Started!")
+          |> assign(room_activated: true)
+          |> assign(users: users)
+          |> assign(joined: joined)}
 
         {:error, {:already_started, _pid}} ->
           {:noreply, put_flash(socket, :error, "Room is already running")}
@@ -67,6 +74,32 @@ defmodule RoomlyWeb.RoomLive.Show do
     end
   end
 
+  def handle_event("start_timer", _params, socket) do
+    room = socket.assigns.room
+    Roomly.RoomServers.PomoServer.start_timer(room.id)
+    {:noreply, put_flash(socket, :info, "Timer Started")}
+  end
+
+  @impl true
+  def handle_info({:timer_update, time, status}, socket) do
+    {:noreply, assign(socket, remaining_time: time, status: status)}
+  end
+
+  def handle_info(%Phoenix.Socket.Broadcast{topic: "room:" <> _, event: "presence_diff", payload: %{joins: joins, leaves: leaves}}, socket) do
+    # Extract user IDs from joins and leaves
+    joined_users = Map.keys(joins)
+    left_users = Map.keys(leaves)
+
+    # Update the users list
+    updated_users =
+      socket.assigns.users
+      |> Enum.concat(joined_users) # Add new users
+      |> Enum.reject(&(&1 in left_users)) # Remove left users
+      |> Enum.uniq()
+
+    {:noreply, assign(socket, users: updated_users)}
+  end
+
   @impl true
   def handle_params(%{"id" => id}, _, socket) do
     room = Orchestrator.get_room!(id)
@@ -81,7 +114,7 @@ defmodule RoomlyWeb.RoomLive.Show do
     end
 
     presences = Roomly.Attendance.RoomPresence.list("room:#{id}")
-    joined = Map.has_key?(presences, socket.assigns.current_user.id)
+    joined = Map.has_key?(presences, "#{socket.assigns.current_user.id}")
     users = Roomly.Attendance.RoomPresence.get_users(id)
 
     {:noreply,
@@ -90,7 +123,9 @@ defmodule RoomlyWeb.RoomLive.Show do
      |> assign(:room, room)
      |> assign(room_activated: room_activated)
      |> assign(users: users)
-     |> assign(joined: joined)}
+     |> assign(joined: joined)
+     |> assign(remaining_time: nil)
+     |> assign(status: nil)}
   end
 
   defp join_room(room_id, user_id, "pomodoro") do

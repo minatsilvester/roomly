@@ -43,10 +43,38 @@
         </.link>
         <% end %>
         <%= if @joined do %>
-          <.link phx-click="leave_room">
-            <.button>Leave room</.button>
-        </.link>
+          <div class="flex flex-col space-y-4">
+            <div class="text-center">
+              <%= if @remaining_time do %>
+                <span class="text-lg font-semibold text-gray-700">
+                  <%= @status |> Atom.to_string() |> String.capitalize() %> Mode
+                </span>
+                <br />
+                <br />
+                <h3 class="text-3xl font-bold text-blue-600">
+                  <%= div(@remaining_time, 60) %>:<%= rem(@remaining_time, 60) %>
+                </h3>
+              <% else %>
+                <p class="text-gray-500">No active session</p>
+              <% end %>
+            </div>
+
+            <div class="flex flex-col space-y-2">
+              <.link phx-click="start_timer">
+                <.button class="w-full bg-green-500 hover:bg-green-600 text-white font-bold py-2 px-4 rounded">
+                  Start Timer
+                </.button>
+              </.link>
+
+              <.link phx-click="leave_room">
+                <.button class="w-full bg-red-500 hover:bg-red-600 text-white font-bold py-2 px-4 rounded">
+                  Leave Room
+                </.button>
+              </.link>
+            </div>
+          </div>
         <% end %>
+
       </div>
 
       <!-- Right Side: User List -->
