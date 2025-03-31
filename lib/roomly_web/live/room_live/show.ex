@@ -4,8 +4,17 @@ defmodule RoomlyWeb.RoomLive.Show do
   alias Roomly.Orchestrator
 
   @impl true
-  def mount(_params, _session, socket) do
-    {:ok, socket}
+  def mount(%{"id" => room_id}, _session, socket) do
+    # {:ok, socket}
+    # Orchestrator.get_room!(room_id)
+    room_running =
+      case Registry.lookup(Roomly.RoomRegistry, room_id) do
+        [{_pid, _}] -> true
+        [] -> false
+      end
+
+    {:ok,
+      assign(socket, room_running: room_running)}
   end
 
   @impl true
@@ -18,8 +27,8 @@ defmodule RoomlyWeb.RoomLive.Show do
       }
     ) do
         {:ok, _pid} ->
-          {:ok, updated_room} = Orchestrator.update_room(socket.assigns.room, %{"status" => "active"})
-          {:noreply, put_flash(socket, :info, "Room Started!") |> assign(room: updated_room)}
+          # {:ok, updated_room} = Orchestrator.update_room(socket.assigns.room, %{"status" => "active"})
+          {:noreply, put_flash(socket, :info, "Room Started!") |> assign(room_running: true)}
 
         {:error, {:already_started, _pid}} ->
           {:noreply, put_flash(socket, :error, "Room is already running")}
@@ -32,11 +41,11 @@ defmodule RoomlyWeb.RoomLive.Show do
   def handle_event("close_room", _params, socket) do
     case Roomly.Supervisors.RoomsManager.stop_room(socket.assigns.room.id) do
       :ok ->
-        {:ok, updated_room} = Orchestrator.update_room(socket.assigns.room, %{"status" => "closed"})
+        # {:ok, updated_room} = Orchestrator.update_room(socket.assigns.room, %{"status" => "closed"})
         {:noreply,
          socket
          |> put_flash(:info, "Room stopped!")
-         |> assign(:room, updated_room)}
+         |> assign(:room_running, false)}
 
       _ ->
         {:noreply, put_flash(socket, :error, "Room is not running")}
