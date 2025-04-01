@@ -43,4 +43,8 @@ defmodule Roomly.Rooms.Pomodoro do
     }
     end
   end
+
+  def switch_timer(%__MODULE__{status: :idle} = pomo) do
+    pomo
+  end
 end
