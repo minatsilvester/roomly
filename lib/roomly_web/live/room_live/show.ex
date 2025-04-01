@@ -80,6 +80,12 @@ defmodule RoomlyWeb.RoomLive.Show do
     {:noreply, put_flash(socket, :info, "Timer Started")}
   end
 
+  def handle_event("stop_timer", _params, socket) do
+    room = socket.assigns.room
+    Roomly.RoomServers.PomoServer.stop_timer(room.id, room.config)
+    {:noreply, put_flash(socket, :info, "Timer Stopped")}
+  end
+
   @impl true
   def handle_info({:timer_update, time, status}, socket) do
     {:noreply, assign(socket, remaining_time: time, status: status)}

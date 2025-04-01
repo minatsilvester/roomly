@@ -24,12 +24,22 @@ defmodule Roomly.RoomServers.PomoServer do
     GenServer.cast(via_tuple(room_id), :start_timer)
   end
 
+  def stop_timer(room_id, config) do
+    GenServer.cast(via_tuple(room_id), {:stop_timer, config})
+  end
+
   @impl true
   def handle_cast(:start_timer, %{pomo: pomo} = state) do
     new_pomo = Pomodoro.start_timer(pomo)
     schedule_tick()
     broadcast_update(state.id, new_pomo.remaining_time, :work)
 
+    {:noreply, %{state | pomo: new_pomo}}
+  end
+
+  def handle_cast({:stop_timer, config}, state) do
+    new_pomo = Pomodoro.new(config)
+    broadcast_update(state.id, new_pomo.remaining_time, :work)
     {:noreply, %{state | pomo: new_pomo}}
   end
 
