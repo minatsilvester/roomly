@@ -10,29 +10,29 @@ defmodule RoomlyWeb.RoomLive.Show do
 
   @impl true
   def handle_event("activate_room", _params, socket) do
-    case Roomly.Supervisors.RoomsManager.start_room(
-      %{
-        id: socket.assigns.room.id,
-        type: socket.assigns.room.type,
-        config: socket.assigns.room.config
-      }
-    ) do
-        {:ok, _pid} ->
-          # {:ok, updated_room} = Orchestrator.update_room(socket.assigns.room, %{"status" => "active"})
-          Phoenix.PubSub.subscribe(Roomly.PubSub, "room:#{socket.assigns.room.id}")
-          presences = Roomly.Attendance.RoomPresence.list("room:#{socket.assigns.room.id}")
-          joined = Map.has_key?(presences, "#{socket.assigns.current_user.id}")
-          users = Roomly.Attendance.RoomPresence.get_users(socket.assigns.room.id)
-          {:noreply, put_flash(socket, :info, "Room Started!")
-          |> assign(room_activated: true)
-          |> assign(users: users)
-          |> assign(joined: joined)}
+    case Roomly.Supervisors.RoomsManager.start_room(%{
+           id: socket.assigns.room.id,
+           type: socket.assigns.room.type,
+           config: socket.assigns.room.config
+         }) do
+      {:ok, _pid} ->
+        # {:ok, updated_room} = Orchestrator.update_room(socket.assigns.room, %{"status" => "active"})
+        Phoenix.PubSub.subscribe(Roomly.PubSub, "room:#{socket.assigns.room.id}")
+        presences = Roomly.Attendance.RoomPresence.list("room:#{socket.assigns.room.id}")
+        joined = Map.has_key?(presences, "#{socket.assigns.current_user.id}")
+        users = Roomly.Attendance.RoomPresence.get_users(socket.assigns.room.id)
 
-        {:error, {:already_started, _pid}} ->
-          {:noreply, put_flash(socket, :error, "Room is already running")}
+        {:noreply,
+         put_flash(socket, :info, "Room Started!")
+         |> assign(room_activated: true)
+         |> assign(users: users)
+         |> assign(joined: joined)}
 
-        {:error, reason} ->
-          {:noreply, put_flash(socket, :error, "Failed to start room: #{inspect(reason)}")}
+      {:error, {:already_started, _pid}} ->
+        {:noreply, put_flash(socket, :error, "Room is already running")}
+
+      {:error, reason} ->
+        {:noreply, put_flash(socket, :error, "Failed to start room: #{inspect(reason)}")}
     end
   end
 
@@ -52,6 +52,7 @@ defmodule RoomlyWeb.RoomLive.Show do
 
   def handle_event("join_room", _params, socket) do
     room = socket.assigns.room
+
     case join_room(room.id, socket.assigns.current_user.id, room.type) do
       :ok ->
         users = Roomly.Attendance.RoomPresence.get_users(room.id)
@@ -64,6 +65,7 @@ defmodule RoomlyWeb.RoomLive.Show do
 
   def handle_event("leave_room", _params, socket) do
     room = socket.assigns.room
+
     case leave_room(room.id, socket.assigns.current_user.id, room.type) do
       :ok ->
         users = Roomly.Attendance.RoomPresence.get_users(room.id)
@@ -91,7 +93,14 @@ defmodule RoomlyWeb.RoomLive.Show do
     {:noreply, assign(socket, remaining_time: time, status: status)}
   end
 
-  def handle_info(%Phoenix.Socket.Broadcast{topic: "room:" <> _, event: "presence_diff", payload: %{joins: joins, leaves: leaves}}, socket) do
+  def handle_info(
+        %Phoenix.Socket.Broadcast{
+          topic: "room:" <> _,
+          event: "presence_diff",
+          payload: %{joins: joins, leaves: leaves}
+        },
+        socket
+      ) do
     # Extract user IDs from joins and leaves
     joined_users = Map.keys(joins)
     left_users = Map.keys(leaves)
@@ -99,8 +108,10 @@ defmodule RoomlyWeb.RoomLive.Show do
     # Update the users list
     updated_users =
       socket.assigns.users
-      |> Enum.concat(joined_users) # Add new users
-      |> Enum.reject(&(&1 in left_users)) # Remove left users
+      # Add new users
+      |> Enum.concat(joined_users)
+      # Remove left users
+      |> Enum.reject(&(&1 in left_users))
       |> Enum.uniq()
 
     {:noreply, assign(socket, users: updated_users)}
@@ -109,6 +120,7 @@ defmodule RoomlyWeb.RoomLive.Show do
   @impl true
   def handle_params(%{"id" => id}, _, socket) do
     room = Orchestrator.get_room!(id)
+
     room_activated =
       case Registry.lookup(Roomly.RoomRegistry, room.id) do
         [{_pid, _}] -> true

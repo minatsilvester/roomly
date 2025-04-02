@@ -23,7 +23,8 @@ defmodule Roomly.Rooms.Pomodoro do
     %{pomo | status: :work, current_round: 1, remaining_time: pomo.work_duration}
   end
 
-  def handle_tick(%__MODULE__{status: :work, remaining_time: remaining_time} = pomo) when remaining_time > 0 do
+  def handle_tick(%__MODULE__{status: :work, remaining_time: remaining_time} = pomo)
+      when remaining_time > 0 do
     %{pomo | remaining_time: remaining_time - 1}
   end
 
@@ -38,9 +39,10 @@ defmodule Roomly.Rooms.Pomodoro do
   def switch_timer(%__MODULE__{status: :break, current_round: round, rounds: total_rounds} = pomo) do
     if round < total_rounds do
       %{pomo | status: :work, current_round: round + 1, remaining_time: pomo.work_duration}
-    else{
-      %{pomo | status: :completed}
-    }
+    else
+      {
+        %{pomo | status: :completed}
+      }
     end
   end
 

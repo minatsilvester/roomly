@@ -12,12 +12,11 @@ defmodule Roomly.RoomServers.PomoServer do
     pomo = Pomodoro.new(config)
 
     {:ok,
-      %{
-        id: room_id,
-        pomo: pomo,
-        users: []
-      }
-    }
+     %{
+       id: room_id,
+       pomo: pomo,
+       users: []
+     }}
   end
 
   def start_timer(room_id) do
@@ -46,6 +45,7 @@ defmodule Roomly.RoomServers.PomoServer do
   @impl true
   def handle_info(:tick, %{pomo: pomo} = state) do
     new_pomo = Pomodoro.handle_tick(pomo)
+
     if new_pomo.status == :completed do
       broadcast_update(state.id, new_pomo.remaining_time, :completed)
     else
