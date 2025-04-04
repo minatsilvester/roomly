@@ -114,6 +114,7 @@ defmodule RoomlyWeb.RoomLive.Components.RoomInfo do
          }) do
       {:ok, _pid} ->
         join_room(socket.assigns.server, socket.assigns.current_user.id, socket.assigns.room.id)
+
         {:noreply,
          put_flash(socket, :info, "Room Started!")
          |> activate_and_join(socket.assigns.room, socket.assigns.current_user, true)}
