@@ -11,7 +11,7 @@ defmodule RoomlyWeb.RoomLive.Rooms.Pomo do
         id="room-info"
         room={@room}
         current_user={@current_user}
-        server={Roomly.RoomServers.PomoServer}
+        server={@server}
       >
         <div class="flex flex-col space-y-6">
           <div class="text-center">
@@ -61,6 +61,7 @@ defmodule RoomlyWeb.RoomLive.Rooms.Pomo do
      socket
      |> assign(page_title: "Pomo Room")
      |> assign(room: room)
+     |> assign(server: Roomly.RoomServers.PomoServer)
      |> assign(remaining_time: nil)
      |> assign(status: nil)}
   end
@@ -97,6 +98,14 @@ defmodule RoomlyWeb.RoomLive.Rooms.Pomo do
      socket
      |> assign(remaining_time: nil)
      |> assign(status: nil)}
+  end
+
+  def terminate(
+        _reason,
+        %{assigns: %{server: server, room: room, current_user: current_user}} = _socket
+      ) do
+    server.leave(room.id, current_user.id)
+    :ok
   end
 
   defp format_timer(remaining_time) do
