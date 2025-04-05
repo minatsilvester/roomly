@@ -5,6 +5,7 @@ defmodule RoomlyWeb.RoomLive.Rooms.Pomo do
 
   def render(assigns) do
     ~H"""
+    <div class="w-full px-4 py-32 sm:px-6 lg:px-8">
     <div class="w-[80%] mx-[10%]">
       <.live_component
         module={RoomlyWeb.RoomLive.Components.RoomInfo}
@@ -47,11 +48,12 @@ defmodule RoomlyWeb.RoomLive.Rooms.Pomo do
         </div>
       </.live_component>
     </div>
+    </div>
     """
   end
 
   def mount(_params, _session, socket) do
-    {:ok, socket}
+    {:ok, socket, layout: false}
   end
 
   def handle_params(%{"id" => id}, _, socket) do
