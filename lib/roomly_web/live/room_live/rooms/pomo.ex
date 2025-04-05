@@ -1,5 +1,6 @@
 defmodule RoomlyWeb.RoomLive.Rooms.Pomo do
   use RoomlyWeb, :live_view
+  use RoomlyWeb.RoomLive
 
   alias Roomly.Orchestrator
 
@@ -12,7 +13,7 @@ defmodule RoomlyWeb.RoomLive.Rooms.Pomo do
         id="room-info"
         room={@room}
         current_user={@current_user}
-        server={Roomly.RoomServers.PomoServer}
+        server={@server}
       >
         <div class="flex flex-col space-y-6">
           <div class="text-center">
@@ -63,6 +64,7 @@ defmodule RoomlyWeb.RoomLive.Rooms.Pomo do
      socket
      |> assign(page_title: "Pomo Room")
      |> assign(room: room)
+     |> assign(server: Roomly.RoomServers.PomoServer)
      |> assign(remaining_time: nil)
      |> assign(status: nil)}
   end
@@ -81,24 +83,6 @@ defmodule RoomlyWeb.RoomLive.Rooms.Pomo do
 
   def handle_info({:timer_update, time, status}, socket) do
     {:noreply, assign(socket, remaining_time: time, status: status)}
-  end
-
-  def handle_info(
-        %Phoenix.Socket.Broadcast{topic: "room:" <> _, event: "presence_diff", payload: payload},
-        socket
-      ) do
-    send_update(RoomlyWeb.RoomLive.Components.RoomInfo, id: "room-info", payload: payload)
-
-    {:noreply, socket}
-  end
-
-  def handle_info({:room_activation, room_activated}, socket) do
-    send_update(RoomlyWeb.RoomLive.Components.RoomInfo,
-      id: "room-info",
-      room_activated: room_activated
-    )
-
-    {:noreply, socket}
   end
 
   defp format_timer(remaining_time) do

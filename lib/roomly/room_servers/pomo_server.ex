@@ -15,7 +15,7 @@ defmodule Roomly.RoomServers.PomoServer do
      %{
        id: room_id,
        pomo: pomo,
-       users: []
+       users: %{}
      }}
   end
 
