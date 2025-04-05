@@ -31,6 +31,7 @@ defmodule RoomlyWeb.Router do
       live "/rooms/:id/show/edit", RoomLive.Show, :edit
 
       scope "/rooms" do
+        live "/join/:id", RoomLive.RoomDispatcherLive, :index
         live "/pomo_room/:id", RoomLive.Rooms.Pomo, :index
       end
     end
