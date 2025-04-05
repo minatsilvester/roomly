@@ -16,7 +16,7 @@ defmodule Roomly.Supervisors.RoomsManager do
 
     case DynamicSupervisor.start_child(__MODULE__, spec) do
       {:ok, pid} ->
-        PubSub.broadcast(Roomly.PubSub, "room_activation:#{room_id}", {:room_activation, true})
+        PubSub.broadcast(Roomly.PubSub, "room:#{room_id}", {:room_activation, true})
         {:ok, pid}
 
       error ->
@@ -28,7 +28,7 @@ defmodule Roomly.Supervisors.RoomsManager do
     case Registry.lookup(Roomly.RoomRegistry, room_id) do
       [{pid, _}] ->
         DynamicSupervisor.terminate_child(__MODULE__, pid)
-        PubSub.broadcast(Roomly.PubSub, "room_activation:#{room_id}", {:room_activation, false})
+        PubSub.broadcast(Roomly.PubSub, "room:#{room_id}", {:room_activation, false})
 
       [] ->
         {:error, :not_found}

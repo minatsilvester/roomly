@@ -80,7 +80,6 @@ defmodule RoomlyWeb.RoomLive.Components.RoomInfo do
 
   def update(%{room: room} = assigns, socket) do
     Phoenix.PubSub.subscribe(Roomly.PubSub, "room:#{room.id}")
-    Phoenix.PubSub.subscribe(Roomly.PubSub, "room_activation:#{room.id}")
 
     room_activated = Registry.lookup(Roomly.RoomRegistry, room.id) != []
 
