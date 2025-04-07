@@ -18,7 +18,7 @@ defmodule Roomly.Orchestrator.Room do
     room
     |> cast(attrs, [:name, :description, :user_id, :type, :status])
     |> validate_required([:name, :user_id, :type, :status])
-    |> validate_inclusion(:type, ["pomodoro", "music"])
+    |> validate_inclusion(:type, ["pomodoro", "music", "qa"])
     |> validate_inclusion(:status, ["closed", "active"])
     |> cast_embed(:config, with: &Roomly.Embedded.Config.changeset/2)
   end
