@@ -64,24 +64,11 @@ defmodule RoomlyWeb.RoomLive.Components.RoomInfo do
     """
   end
 
-  def update(%{payload: %{joins: joins, leaves: leaves}} = assigns, socket) do
-    # Extract user IDs from joins and leaves
-    joined_users = Map.keys(joins)
-    left_users = Map.keys(leaves)
-
-    # Update the users list
-    updated_users =
-      socket.assigns.users
-      # Add new users
-      |> Enum.concat(joined_users)
-      # Remove left users
-      |> Enum.reject(&(&1 in left_users))
-      |> Enum.uniq()
-
+  def update(%{payload: %{users: users}} = assigns, socket) do
     {:ok,
      socket
      |> assign(assigns)
-     |> assign(users: updated_users)}
+     |> assign(users: Map.keys(users))}
   end
 
   def update(%{room_activated: room_activated} = assigns, socket) do
@@ -93,15 +80,12 @@ defmodule RoomlyWeb.RoomLive.Components.RoomInfo do
 
   def update(%{room: room} = assigns, socket) do
     Phoenix.PubSub.subscribe(Roomly.PubSub, "room:#{room.id}")
-    Phoenix.PubSub.subscribe(Roomly.PubSub, "room_activation:#{room.id}")
 
     room_activated = Registry.lookup(Roomly.RoomRegistry, room.id) != []
-    users = Roomly.Attendance.RoomPresence.get_users(room.id)
 
     {:ok,
      socket
      |> assign(assigns)
-     |> assign(users: users)
      |> assign(is_room_admin: assigns.current_user.id == room.user_id)
      |> activate_and_join(room, assigns.current_user, room_activated)}
   end
@@ -145,9 +129,7 @@ defmodule RoomlyWeb.RoomLive.Components.RoomInfo do
 
     case join_room(socket.assigns.server, room.id, socket.assigns.current_user.id) do
       :ok ->
-        {:noreply,
-         assign(socket, joined: true)
-         |> activate_and_join(room, socket.assigns.current_user, true)}
+        {:noreply, assign(socket, joined: true)}
 
       {:error, _reason} ->
         {:noreply, socket |> put_flash(:error, "Failed to join room")}
@@ -167,10 +149,11 @@ defmodule RoomlyWeb.RoomLive.Components.RoomInfo do
   end
 
   defp activate_and_join(socket, room, current_user, room_activated) do
-    presences = Roomly.Attendance.RoomPresence.list("room:#{room.id}")
-    joined = Map.has_key?(presences, "#{current_user.id}")
+    users = get_users(socket.assigns.server, room.id, room_activated)
+    joined = Enum.any?(users, &(&1 == current_user.id))
 
     socket
+    |> assign(users: users)
     |> assign(room_activated: room_activated)
     |> assign(joined: joined)
   end
@@ -182,4 +165,7 @@ defmodule RoomlyWeb.RoomLive.Components.RoomInfo do
   defp leave_room(server, room_id, user_id) do
     server.leave(room_id, user_id)
   end
+
+  defp get_users(server, room_id, true), do: server.get_users(room_id)
+  defp get_users(_server, _room_id, false), do: []
 end
