@@ -25,7 +25,7 @@ defmodule RoomlyWeb.RoomLive.FormComponent do
           field={@form[:type]}
           type="select"
           label="Type"
-          options={[{"Pomodoro", "pomodoro"}, {"Music", "music"}]}
+          options={[{"Pomodoro", "pomodoro"}, {"Music", "music"}, {"Chat", "chat"}]}
           phx-change="update_type"
         />
 
