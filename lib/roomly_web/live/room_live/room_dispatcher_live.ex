@@ -12,4 +12,5 @@ defmodule RoomlyWeb.RoomLive.RoomDispatcherLive do
   end
 
   defp specific_room_url("pomodoro", id), do: ~p"/rooms/pomo_room/#{id}"
+  defp specific_room_url("chat", id), do: ~p"/rooms/chat_room/#{id}"
 end

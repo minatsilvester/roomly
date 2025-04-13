@@ -1,8 +1,8 @@
 <.header>
   Room {@room.id}
   <:subtitle>This is a room record from your database.</:subtitle>
-  <.link navigate={~p"/rooms/join/#{@room.id}"} class="ml-4">
-      <.button>Join room</.button>
+  <.link navigate={~p"/rooms/go_to/#{@room.id}"} class="ml-4">
+      <.button>Go to room</.button>
   </.link>
   <:actions>
     <.link patch={~p"/rooms/#{@room}/show/edit"} phx-click={JS.push_focus()}>
