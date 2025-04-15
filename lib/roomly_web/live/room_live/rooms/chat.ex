@@ -30,7 +30,7 @@ defmodule RoomlyWeb.RoomLive.Rooms.Chat do
 
     {:noreply,
      socket
-     |> assign(page_title: "Pomo Room")
+     |> assign(page_title: "Chat Room")
      |> assign(room: room)
      |> assign(server: Roomly.RoomServers.ChatServer)
      |> assign(messages: [])
