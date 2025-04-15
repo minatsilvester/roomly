@@ -12,16 +12,19 @@ defmodule Roomly.Supervisors.RoomsManager do
   end
 
   def start_room(%{id: room_id, type: "pomodoro", config: config}) do
-    spec = {Roomly.RoomServers.PomoServer, {room_id, config}}
+    # spec = {Roomly.RoomServers.PomoServer, {room_id, config}}
+    start_child(
+      {Roomly.RoomServers.PomoServer, {room_id, config}},
+      room_id
+    )
+  end
 
-    case DynamicSupervisor.start_child(__MODULE__, spec) do
-      {:ok, pid} ->
-        PubSub.broadcast(Roomly.PubSub, "room:#{room_id}", {:room_activation, true})
-        {:ok, pid}
-
-      error ->
-        error
-    end
+  def start_room(%{id: room_id, type: "chat", config: _config}) do
+    # spec = {Roomly.RoomServers.ChatServer, room_id}
+    start_child(
+      {Roomly.RoomServers.ChatServer, room_id},
+      room_id
+    )
   end
 
   def stop_room(room_id) do
@@ -32,6 +35,17 @@ defmodule Roomly.Supervisors.RoomsManager do
 
       [] ->
         {:error, :not_found}
+    end
+  end
+
+  defp start_child(spec, room_id) do
+    case DynamicSupervisor.start_child(__MODULE__, spec) do
+      {:ok, pid} ->
+        PubSub.broadcast(Roomly.PubSub, "room:#{room_id}", {:room_activation, true})
+        {:ok, pid}
+
+      error ->
+        error
     end
   end
 end

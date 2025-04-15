@@ -11,7 +11,7 @@ defmodule Roomly.RoomServers.ChatServer do
     {:ok,
      %{
         id: room_id,
-        users: [],
+        users: %{},
         messages: []
      }}
   end
