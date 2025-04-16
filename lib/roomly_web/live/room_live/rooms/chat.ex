@@ -7,16 +7,25 @@ defmodule RoomlyWeb.RoomLive.Rooms.Chat do
   def render(assigns) do
     ~H"""
     <div class="w-full px-4 py-32 sm:px-6 lg:px-8">
-    <div class="w-[80%] mx-[10%]">
-      <.live_component
-        module={RoomlyWeb.RoomLive.Components.RoomInfo}
-        id="room-info"
-        room={@room}
-        current_user={@current_user}
-        server={@server}
-      >
-      </.live_component>
-    </div>
+      <div class="w-[80%] mx-[10%]">
+        <.live_component
+          module={RoomlyWeb.RoomLive.Components.RoomInfo}
+          id="room-info"
+          room={@room}
+          current_user={@current_user}
+          server={@server}
+        >
+        <%= if @room_activated do %>
+        <div class="mt-8 space-y-2">
+          <%= for msg <- @messages do %>
+            <div class="p-2 bg-gray-100 rounded-md"><%= msg %></div>
+          <% end %>
+        </div>
+        <% end %>
+        </.live_component>
+      </div>
+
+
     </div>
     """
   end
@@ -34,6 +43,7 @@ defmodule RoomlyWeb.RoomLive.Rooms.Chat do
      |> assign(room: room)
      |> assign(server: Roomly.RoomServers.ChatServer)
      |> assign(messages: [])
+     |> assign(room_activated: false)
      |> assign(status: nil)}
   end
 
