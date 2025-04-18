@@ -20,7 +20,6 @@ defmodule RoomlyWeb.RoomLive do
             _reason,
             %{assigns: %{server: server, room: room, current_user: current_user}} = _socket
           ) do
-        # server.leave(room.id, current_user.id)
         :ok
       end
     end

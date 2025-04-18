@@ -75,7 +75,7 @@ defmodule RoomlyWeb.RoomLive.Components.RoomInfo do
     {:ok,
      socket
      |> assign(assigns)
-     |> activate_and_join(socket.assigns.room, socket.assigns.current_user, room_activated)}
+     |> set_room_activated_and_joined(socket.assigns.room, socket.assigns.current_user, room_activated)}
   end
 
   def update(%{room: room} = assigns, socket) do
@@ -87,7 +87,7 @@ defmodule RoomlyWeb.RoomLive.Components.RoomInfo do
      socket
      |> assign(assigns)
      |> assign(is_room_admin: assigns.current_user.id == room.user_id)
-     |> activate_and_join(room, assigns.current_user, room_activated)}
+     |> set_room_activated_and_joined(room, assigns.current_user, room_activated)}
   end
 
   def handle_event("activate_room", _params, socket) do
@@ -101,7 +101,7 @@ defmodule RoomlyWeb.RoomLive.Components.RoomInfo do
 
         {:noreply,
          put_flash(socket, :info, "Room Started!")
-         |> activate_and_join(socket.assigns.room, socket.assigns.current_user, true)}
+         |> set_room_activated_and_joined(socket.assigns.room, socket.assigns.current_user, true)}
 
       {:error, {:already_started, _pid}} ->
         {:noreply, put_flash(socket, :error, "Room is already running")}
@@ -148,7 +148,14 @@ defmodule RoomlyWeb.RoomLive.Components.RoomInfo do
     end
   end
 
-  defp activate_and_join(socket, room, current_user, room_activated) do
+  defp set_room_activated_and_joined(socket, _room, _current_user, false) do
+    socket
+    |> assign(users: [])
+    |> assign(room_activated: false)
+    |> assign(joined: false)
+  end
+
+  defp set_room_activated_and_joined(socket, room, current_user, room_activated) do
     users = get_users(socket.assigns.server, room.id, room_activated)
     joined = Enum.any?(users, &(&1 == current_user.id))
 
@@ -157,6 +164,7 @@ defmodule RoomlyWeb.RoomLive.Components.RoomInfo do
     |> assign(room_activated: room_activated)
     |> assign(joined: joined)
   end
+
 
   defp join_room(server, room_id, user_id) do
     server.join(room_id, user_id)
