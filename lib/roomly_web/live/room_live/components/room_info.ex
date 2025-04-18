@@ -112,16 +112,7 @@ defmodule RoomlyWeb.RoomLive.Components.RoomInfo do
   end
 
   def handle_event("close_room", _params, socket) do
-    case Roomly.Supervisors.RoomsManager.stop_room(socket.assigns.room.id) do
-      :ok ->
-        {:noreply,
-         socket
-         |> put_flash(:info, "Room stopped!")
-         |> assign(room_activated: false)}
-
-      _ ->
-        {:noreply, put_flash(socket, :error, "Room is not running")}
-    end
+    stop_room_and_acknowledge(socket.assigns.room, socket)
   end
 
   def handle_event("join_room", _params, socket) do
@@ -138,14 +129,22 @@ defmodule RoomlyWeb.RoomLive.Components.RoomInfo do
 
   def handle_event("leave_room", _params, socket) do
     room = socket.assigns.room
-
     case leave_room(socket.assigns.server, room.id, socket.assigns.current_user.id) do
       :ok ->
-        {:noreply, assign(socket, joined: false) |> put_flash(:info, "Left Room")}
+        # {:noreply, assign(socket, joined: false) |> put_flash(:info, "Left Room")}
+        close_room_if_is_admin(socket.assigns.is_room_admin, room, socket)
 
       {:error, _reason} ->
         {:noreply, socket |> put_flash(:error, "Failed to leave room")}
     end
+  end
+
+  defp close_room_if_is_admin(false, _room, socket) do
+    {:noreply, assign(socket, joined: false) |> put_flash(:info, "Left Room")}
+  end
+
+  defp close_room_if_is_admin(true, room, socket) do
+    stop_room_and_acknowledge(room, socket)
   end
 
   defp set_room_activated_and_joined(socket, _room, _current_user, false) do
@@ -172,6 +171,19 @@ defmodule RoomlyWeb.RoomLive.Components.RoomInfo do
 
   defp leave_room(server, room_id, user_id) do
     server.leave(room_id, user_id)
+  end
+
+  defp stop_room_and_acknowledge(room, socket) do
+    case Roomly.Supervisors.RoomsManager.stop_room(room.id) do
+      :ok ->
+        {:noreply,
+         socket
+         |> put_flash(:info, "Room stopped!")
+         |> assign(room_activated: false)}
+
+      _ ->
+        {:noreply, put_flash(socket, :error, "Room is not running")}
+    end
   end
 
   defp get_users(server, room_id, true), do: server.get_users(room_id)
