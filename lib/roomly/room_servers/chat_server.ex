@@ -31,8 +31,7 @@ defmodule Roomly.RoomServers.ChatServer do
   @impl true
   def handle_cast({:append_message, message}, state) do
     new_messages = state.messages ++ [message]
-
-    PubSub.broadcast(Roomly.Pubsub, "room:#{state.id}", {:new_message, message})
+    PubSub.broadcast(Roomly.PubSub, "room:#{state.id}", {:new_message, message})
 
     {:noreply, %{state | messages: new_messages}}
   end

@@ -79,8 +79,6 @@ defmodule RoomlyWeb.RoomLive.Components.RoomInfo do
   end
 
   def update(%{room: room} = assigns, socket) do
-    Phoenix.PubSub.subscribe(Roomly.PubSub, "room:#{room.id}")
-
     room_activated = Registry.lookup(Roomly.RoomRegistry, room.id) != []
 
     {:ok,
@@ -112,6 +110,7 @@ defmodule RoomlyWeb.RoomLive.Components.RoomInfo do
   end
 
   def handle_event("close_room", _params, socket) do
+    Phoenix.PubSub.unsubscribe(Roomly.PubSub, "room:#{socket.assigns.room.id}")
     stop_room_and_acknowledge(socket.assigns.room, socket)
   end
 
@@ -131,7 +130,7 @@ defmodule RoomlyWeb.RoomLive.Components.RoomInfo do
     room = socket.assigns.room
     case leave_room(socket.assigns.server, room.id, socket.assigns.current_user.id) do
       :ok ->
-        # {:noreply, assign(socket, joined: false) |> put_flash(:info, "Left Room")}
+        Phoenix.PubSub.unsubscribe(Roomly.PubSub, "room:#{room.id}")
         close_room_if_is_admin(socket.assigns.is_room_admin, room, socket)
 
       {:error, _reason} ->
@@ -162,11 +161,18 @@ defmodule RoomlyWeb.RoomLive.Components.RoomInfo do
     |> assign(users: users)
     |> assign(room_activated: room_activated)
     |> assign(joined: joined)
+    |> send_update_to_parent()
+  end
+
+  defp send_update_to_parent(socket) do
+    send(self(), {:room_activated, true})
+    socket
   end
 
 
   defp join_room(server, room_id, user_id) do
     server.join(room_id, user_id)
+   Phoenix.PubSub.subscribe(Roomly.PubSub, "room:#{room_id}")
   end
 
   defp leave_room(server, room_id, user_id) do

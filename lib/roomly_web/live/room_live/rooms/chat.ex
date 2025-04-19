@@ -16,21 +16,36 @@ defmodule RoomlyWeb.RoomLive.Rooms.Chat do
           server={@server}
         >
         <%= if @room_activated do %>
-        <div class="mt-8 space-y-2">
-          <%= for msg <- @messages do %>
-            <div class="p-2 bg-gray-100 rounded-md"><%= msg %></div>
-          <% end %>
-        </div>
+          <div class="mt-8 space-y-2">
+            <%= for msg <- @messages do %>
+              <div class="p-2 bg-gray-100 rounded-md"><%= msg %></div>
+            <% end %>
+          </div>
+          <.form for={%{}} as={:chat} phx-submit="send_message" class="mt-4 flex gap-2">
+            <input
+              name="chat[message]"
+              type="text"
+              placeholder="Type your message..."
+              class="flex-1 p-2 border border-gray-300 rounded-md"
+              autocomplete="off"
+            />
+            <button
+              type="submit"
+              class="px-4 py-2 bg-blue-600 text-white rounded-md hover:bg-blue-700"
+            >
+              Send
+            </button>
+          </.form>
         <% end %>
+
         </.live_component>
       </div>
-
-
     </div>
     """
   end
 
   def mount(_params, _session, socket) do
+    IO.inspect(self())
     {:ok, socket, layout: false}
   end
 
@@ -47,10 +62,15 @@ defmodule RoomlyWeb.RoomLive.Rooms.Chat do
      |> assign(status: nil)}
   end
 
-  def handle_event("send_message", %{"message" => message}, socket) do
+
+  def handle_event("send_message", %{"chat" => %{"message" => message}}, socket) do
     room = socket.assigns.room
-    Roomly.RoomServers.ChatServer.append_message(room.id, message)
+    Roomly.RoomServers.ChatServer.append_message(room.id, "#{socket.assigns.current_user.id} : #{message}")
     {:noreply, socket}
+  end
+
+  def handle_info({:room_activated, true}, socket) do
+    {:noreply, assign(socket, :room_activated, true)}
   end
 
   def handle_info({:new_message, message}, socket) do
