@@ -1,4 +1,5 @@
 defmodule Roomly.RoomServer do
+  alias Roomly.Accounts
   defmacro __using__(_) do
     quote do
       use GenServer
@@ -28,7 +29,7 @@ defmodule Roomly.RoomServer do
       end
 
       def handle_call(:get_users, _from, %{users: users} = state) do
-        {:reply, Map.keys(users), state}
+        {:reply, Map.keys(users) |> Accounts.get_users_by_id(), state}
       end
 
       defp via_tuple(room_id) do

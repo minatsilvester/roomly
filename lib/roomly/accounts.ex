@@ -10,6 +10,11 @@ defmodule Roomly.Accounts do
 
   ## Database getters
 
+
+  def get_users_by_id(ids) do
+    from(u in User, where: u.id in ^ids)
+    |> Repo.all()
+  end
   @doc """
   Gets a user by email.
 

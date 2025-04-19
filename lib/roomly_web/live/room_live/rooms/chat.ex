@@ -65,7 +65,7 @@ defmodule RoomlyWeb.RoomLive.Rooms.Chat do
 
   def handle_event("send_message", %{"chat" => %{"message" => message}}, socket) do
     room = socket.assigns.room
-    Roomly.RoomServers.ChatServer.append_message(room.id, "#{socket.assigns.current_user.id} : #{message}")
+    Roomly.RoomServers.ChatServer.append_message(room.id, "#{socket.assigns.current_user.name} : #{message}")
     {:noreply, socket}
   end
 

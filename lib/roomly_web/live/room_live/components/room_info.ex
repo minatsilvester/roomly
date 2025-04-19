@@ -1,4 +1,5 @@
 defmodule RoomlyWeb.RoomLive.Components.RoomInfo do
+alias Roomly.Accounts
   use RoomlyWeb, :live_component
 
   def render(assigns) do
@@ -56,7 +57,7 @@ defmodule RoomlyWeb.RoomLive.Components.RoomInfo do
         <h2 class="text-xl font-semibold mb-3">Users in Room</h2>
         <ul class="space-y-2">
           <%= for user <- @users do %>
-            <li class="p-2 bg-gray-200 rounded-md">{user}</li>
+            <li class="p-2 bg-gray-200 rounded-md">{user.name}</li>
           <% end %>
         </ul>
       </div>
@@ -68,7 +69,7 @@ defmodule RoomlyWeb.RoomLive.Components.RoomInfo do
     {:ok,
      socket
      |> assign(assigns)
-     |> assign(users: Map.keys(users))}
+     |> assign(users: Map.keys(users) |> Accounts.get_users_by_id())}
   end
 
   def update(%{room_activated: room_activated} = assigns, socket) do
@@ -155,7 +156,7 @@ defmodule RoomlyWeb.RoomLive.Components.RoomInfo do
 
   defp set_room_activated_and_joined(socket, room, current_user, room_activated) do
     users = get_users(socket.assigns.server, room.id, room_activated)
-    joined = Enum.any?(users, &(&1 == current_user.id))
+    joined = Enum.any?(users, &(&1.id == current_user.id))
 
     socket
     |> assign(users: users)
