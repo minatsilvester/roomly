@@ -80,6 +80,8 @@ alias Roomly.Accounts
   end
 
   def update(%{room: room} = assigns, socket) do
+    Phoenix.PubSub.subscribe(Roomly.PubSub, "room_activation:#{room.id}")
+
     room_activated = Registry.lookup(Roomly.RoomRegistry, room.id) != []
 
     {:ok,
@@ -179,7 +181,8 @@ alias Roomly.Accounts
         {:noreply,
          socket
          |> put_flash(:info, "Room stopped!")
-         |> assign(room_activated: false)}
+         |> assign(room_activated: false)
+         |> assign(joined: false)}
 
       _ ->
         {:noreply, put_flash(socket, :error, "Room is not running")}
