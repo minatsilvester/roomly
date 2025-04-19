@@ -62,7 +62,7 @@ defmodule RoomlyWeb.RoomLive.Rooms.Pomo do
 
     {:noreply,
      socket
-     |> mount_common_assigns()
+     |> mount_common_assigns(room.id)
      |> assign(page_title: "Pomo Room")
      |> assign(room: room)
      |> assign(server: Roomly.RoomServers.PomoServer)

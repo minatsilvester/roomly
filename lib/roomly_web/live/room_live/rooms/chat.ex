@@ -53,7 +53,7 @@ defmodule RoomlyWeb.RoomLive.Rooms.Chat do
 
     {:noreply,
      socket
-     |> mount_common_assigns()
+     |> mount_common_assigns(room.id)
      |> assign(page_title: "Chat Room")
      |> assign(room: room)
      |> assign(server: Roomly.RoomServers.ChatServer)

@@ -23,8 +23,9 @@ defmodule RoomlyWeb.RoomLive do
         :ok
       end
 
-      def mount_common_assigns(socket) do
-        assign(socket, :room_activated, false)
+      def mount_common_assigns(socket, room_id) do
+        room_activated = Registry.lookup(Roomly.RoomRegistry, room_id) != []
+        assign(socket, :room_activated, room_activated)
       end
     end
   end
