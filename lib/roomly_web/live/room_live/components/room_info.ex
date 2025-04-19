@@ -162,18 +162,11 @@ alias Roomly.Accounts
     |> assign(users: users)
     |> assign(room_activated: room_activated)
     |> assign(joined: joined)
-    |> send_update_to_parent()
   end
-
-  defp send_update_to_parent(socket) do
-    send(self(), {:room_activated, true})
-    socket
-  end
-
 
   defp join_room(server, room_id, user_id) do
+    Phoenix.PubSub.subscribe(Roomly.PubSub, "room:#{room_id}")
     server.join(room_id, user_id)
-   Phoenix.PubSub.subscribe(Roomly.PubSub, "room:#{room_id}")
   end
 
   defp leave_room(server, room_id, user_id) do

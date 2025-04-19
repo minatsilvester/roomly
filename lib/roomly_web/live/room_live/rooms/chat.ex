@@ -45,7 +45,6 @@ defmodule RoomlyWeb.RoomLive.Rooms.Chat do
   end
 
   def mount(_params, _session, socket) do
-    IO.inspect(self())
     {:ok, socket, layout: false}
   end
 
@@ -54,11 +53,11 @@ defmodule RoomlyWeb.RoomLive.Rooms.Chat do
 
     {:noreply,
      socket
+     |> mount_common_assigns()
      |> assign(page_title: "Chat Room")
      |> assign(room: room)
      |> assign(server: Roomly.RoomServers.ChatServer)
      |> assign(messages: [])
-     |> assign(room_activated: false)
      |> assign(status: nil)}
   end
 
@@ -67,10 +66,6 @@ defmodule RoomlyWeb.RoomLive.Rooms.Chat do
     room = socket.assigns.room
     Roomly.RoomServers.ChatServer.append_message(room.id, "#{socket.assigns.current_user.name} : #{message}")
     {:noreply, socket}
-  end
-
-  def handle_info({:room_activated, true}, socket) do
-    {:noreply, assign(socket, :room_activated, true)}
   end
 
   def handle_info({:new_message, message}, socket) do

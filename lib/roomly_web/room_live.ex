@@ -13,7 +13,7 @@ defmodule RoomlyWeb.RoomLive do
           room_activated: room_activated
         )
 
-        {:noreply, socket}
+        {:noreply, assign(socket, :room_activated, room_activated)}
       end
 
       def terminate(
@@ -21,6 +21,10 @@ defmodule RoomlyWeb.RoomLive do
             %{assigns: %{server: server, room: room, current_user: current_user}} = _socket
           ) do
         :ok
+      end
+
+      def mount_common_assigns(socket) do
+        assign(socket, :room_activated, false)
       end
     end
   end
