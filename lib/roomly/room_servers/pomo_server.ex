@@ -61,6 +61,6 @@ defmodule Roomly.RoomServers.PomoServer do
   end
 
   defp broadcast_update(room_id, time, status) do
-    PubSub.broadcast(Roomly.PubSub, "room:#{room_id}", {:timer_update, time, status})
+    PubSub.broadcast(Roomly.PubSub, "pomo:#{room_id}", {:timer_update, time, status})
   end
 end
