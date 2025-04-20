@@ -80,7 +80,7 @@ alias Roomly.Accounts
   end
 
   def update(%{room: room} = assigns, socket) do
-    Phoenix.PubSub.subscribe(Roomly.PubSub, "room_activation:#{room.id}")
+    Phoenix.PubSub.subscribe(Roomly.PubSub, "room:#{room.id}")
 
     room_activated = Registry.lookup(Roomly.RoomRegistry, room.id) != []
 
@@ -113,7 +113,6 @@ alias Roomly.Accounts
   end
 
   def handle_event("close_room", _params, socket) do
-    Phoenix.PubSub.unsubscribe(Roomly.PubSub, "room:#{socket.assigns.room.id}")
     stop_room_and_acknowledge(socket.assigns.room, socket)
   end
 
@@ -133,7 +132,6 @@ alias Roomly.Accounts
     room = socket.assigns.room
     case leave_room(socket.assigns.server, room.id, socket.assigns.current_user.id) do
       :ok ->
-        Phoenix.PubSub.unsubscribe(Roomly.PubSub, "room:#{room.id}")
         close_room_if_is_admin(socket.assigns.is_room_admin, room, socket)
 
       {:error, _reason} ->
@@ -167,7 +165,6 @@ alias Roomly.Accounts
   end
 
   defp join_room(server, room_id, user_id) do
-    Phoenix.PubSub.subscribe(Roomly.PubSub, "room:#{room_id}")
     server.join(room_id, user_id)
   end
 
