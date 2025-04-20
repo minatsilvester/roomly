@@ -14,6 +14,7 @@ defmodule RoomlyWeb.RoomLive.Rooms.Pomo do
         room={@room}
         current_user={@current_user}
         server={@server}
+        custom_topics={["pomo:#{@room.id}"]}
       >
         <div class="flex flex-col space-y-6">
           <div class="text-center">

@@ -14,6 +14,7 @@ defmodule RoomlyWeb.RoomLive.Rooms.Chat do
           room={@room}
           current_user={@current_user}
           server={@server}
+          custom_topics={["chat:#{@room.id}"]}
         >
         <%= if @room_activated do %>
           <div class="mt-8 space-y-2">

@@ -80,13 +80,15 @@ alias Roomly.Accounts
   end
 
   def update(%{room: room} = assigns, socket) do
-    Phoenix.PubSub.subscribe(Roomly.PubSub, "room_activation:#{room.id}")
+    Phoenix.PubSub.subscribe(Roomly.PubSub, "room:#{room.id}")
 
     room_activated = Registry.lookup(Roomly.RoomRegistry, room.id) != []
+    custom_topics = Map.get(assigns, :custom_topics, [])
 
     {:ok,
      socket
      |> assign(assigns)
+     |> assign(custom_topics: custom_topics)
      |> assign(is_room_admin: assigns.current_user.id == room.user_id)
      |> set_room_activated_and_joined(room, assigns.current_user, room_activated)}
   end
@@ -113,7 +115,6 @@ alias Roomly.Accounts
   end
 
   def handle_event("close_room", _params, socket) do
-    Phoenix.PubSub.unsubscribe(Roomly.PubSub, "room:#{socket.assigns.room.id}")
     stop_room_and_acknowledge(socket.assigns.room, socket)
   end
 
@@ -122,7 +123,7 @@ alias Roomly.Accounts
 
     case join_room(socket.assigns.server, room.id, socket.assigns.current_user.id) do
       :ok ->
-        {:noreply, assign(socket, joined: true)}
+        {:noreply, assign_joined_state(socket, true)}
 
       {:error, _reason} ->
         {:noreply, socket |> put_flash(:error, "Failed to join room")}
@@ -133,7 +134,6 @@ alias Roomly.Accounts
     room = socket.assigns.room
     case leave_room(socket.assigns.server, room.id, socket.assigns.current_user.id) do
       :ok ->
-        Phoenix.PubSub.unsubscribe(Roomly.PubSub, "room:#{room.id}")
         close_room_if_is_admin(socket.assigns.is_room_admin, room, socket)
 
       {:error, _reason} ->
@@ -142,7 +142,7 @@ alias Roomly.Accounts
   end
 
   defp close_room_if_is_admin(false, _room, socket) do
-    {:noreply, assign(socket, joined: false) |> put_flash(:info, "Left Room")}
+    {:noreply, assign_joined_state(socket, false) |> put_flash(:info, "Left Room")}
   end
 
   defp close_room_if_is_admin(true, room, socket) do
@@ -153,7 +153,7 @@ alias Roomly.Accounts
     socket
     |> assign(users: [])
     |> assign(room_activated: false)
-    |> assign(joined: false)
+    |> assign_joined_state(false)
   end
 
   defp set_room_activated_and_joined(socket, room, current_user, room_activated) do
@@ -163,11 +163,10 @@ alias Roomly.Accounts
     socket
     |> assign(users: users)
     |> assign(room_activated: room_activated)
-    |> assign(joined: joined)
+    |> assign_joined_state(joined)
   end
 
   defp join_room(server, room_id, user_id) do
-    Phoenix.PubSub.subscribe(Roomly.PubSub, "room:#{room_id}")
     server.join(room_id, user_id)
   end
 
@@ -182,7 +181,7 @@ alias Roomly.Accounts
          socket
          |> put_flash(:info, "Room stopped!")
          |> assign(room_activated: false)
-         |> assign(joined: false)}
+         |> assign_joined_state(false)}
 
       _ ->
         {:noreply, put_flash(socket, :error, "Room is not running")}
@@ -191,4 +190,18 @@ alias Roomly.Accounts
 
   defp get_users(server, room_id, true), do: server.get_users(room_id)
   defp get_users(_server, _room_id, false), do: []
+
+  defp assign_joined_state(socket, joined) do
+    Enum.map(socket.assigns.custom_topics, fn topic ->
+      subscribe_or_unsubscribe(topic, joined, Map.get(socket.assigns, :subscribed_custom_topics, false))
+    end)
+
+    socket
+    |> assign(joined: joined)
+    |> assign(subscribed_custom_topics: joined)
+  end
+
+  defp subscribe_or_unsubscribe(topic, true, false), do: Phoenix.PubSub.subscribe(Roomly.PubSub, topic)
+  defp subscribe_or_unsubscribe(topic, false, true), do: Phoenix.PubSub.unsubscribe(Roomly.PubSub, topic)
+  defp subscribe_or_unsubscribe(_topic, _joined, _subscribed_custom_topics), do: :ok
 end

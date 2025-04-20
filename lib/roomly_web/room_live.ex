@@ -20,6 +20,8 @@ defmodule RoomlyWeb.RoomLive do
             _reason,
             %{assigns: %{server: server, room: room, current_user: current_user}} = _socket
           ) do
+        server.leave(room.id, current_user.id)
+        Phoenix.PubSub.unsubscribe(Roomly.PubSub, "room:#{room.id}")
         :ok
       end
 
