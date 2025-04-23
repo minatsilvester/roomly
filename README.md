@@ -17,16 +17,21 @@ Roomly is a **real-time interactive room system** built with **Phoenix LiveView*
 ## 📌 Room Types
 
 1. **Pomodoro Room** ⏳: Time-based focus sessions with work/break cycles.
-2. **Game Room** 🎮: Multiplayer rooms for interactive games.
-3. **Music Room** 🎵: Synchronized listening experience for groups.
-4. **Chat Room** 💬: Simple real-time chat functionality.
+2. **Chat Room** 💬: Simple real-time chat functionality.
+
+---
+
+## 📌 More Possible Room Types to build
+
+1. **Game Room** 🎮: Multiplayer rooms for interactive games.
+2. **Music Room** 🎵: Synchronized listening experience for groups.
 
 ---
 
 ## 🛠️ Tech Stack
 
-- **Backend**: Elixir, Phoenix LiveView, GenServer, Presence
-- **Frontend**: Tailwind CSS, Phoenix LiveView hooks
+- **Backend**: Elixir, Phoenix LiveView
+- **Frontend**: Tailwind CSS
 - **Database**: PostgreSQL
 
 ---
@@ -89,8 +94,7 @@ http://localhost:4000
 ---
 
 ## 📌 Roadmap
-- [ ] 🎲 Add more game integrations
-- [ ] 🎶 Improve the music synchronization experience
+- [ ] 🎲 Add more room type integrations
 - [ ] 🛑 Auto-stop rooms after inactivity
 - [ ] 🏆 Leaderboard and stats tracking
 
