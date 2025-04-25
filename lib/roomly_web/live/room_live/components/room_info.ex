@@ -157,6 +157,7 @@ alias Roomly.Accounts
   end
 
   defp set_room_activated_and_joined(socket, room, current_user, room_activated) do
+    if connected?(socket), do: activate_user(socket.assigns.server, room.id, current_user.id)
     users = get_users(socket.assigns.server, room.id, room_activated)
     joined = Enum.any?(users, &(&1.id == current_user.id))
 
@@ -164,6 +165,10 @@ alias Roomly.Accounts
     |> assign(users: users)
     |> assign(room_activated: room_activated)
     |> assign_joined_state(joined)
+  end
+
+  defp activate_user(server, room_id, user_id) do
+    server.activate_user(room_id, user_id)
   end
 
   defp join_room(server, room_id, user_id) do
